@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html><head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Details Select</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <script type="text/javascript" src="a_data/dummy.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="a_data/result-light.css">
+
+
+  <style id="compiled-css" type="text/css">
+      details.select_container {
+  display: inline-block;
+  width: 200px;
+  border: 1px solid #c5c5c5;
+  border-radius: 3px;
+  position: relative;
+  color: #454545;
+}
+
+details.select_container[open] {
+  border-radius: 3px 3px 0 0;
+}
+
+details.select_container summary::after {
+  content: "\00203A";
+  position: absolute;
+  right: 12px;
+  top: calc(50%);
+  transform: translateY(-50%) rotate(90deg);
+  pointer-events: none;
+}
+
+details.select_container[open] summary::after {
+  content: "\002039";
+}
+
+details.select_container summary {
+  cursor: pointer;
+  padding: 6px 12px;
+  background: #f6f6f6;
+  list-style: none;
+}
+
+details.select_container summary::-webkit-details-marker {
+  display: none;
+}
+
+details.select_container summary:hover {
+  background: #ededed;
+}
+
+details.select_container .select {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #c5c5c5;
+  width: 100%;
+  left: -1px;
+  border-radius: 0 0 3px 3px;
+  background: #fff;
+}
+
+details.select_container .select__option {
+  cursor: pointer;
+  padding: 6px 12px;
+}
+
+details.select_container .select:hover .select__option.active {
+  background: #fff;
+  color: #454545;
+}
+
+details.select_container .select__option.active,
+details.select_container .select:hover .select__option.active:hover,
+details.select_container .select__option:hover {
+  background: #007fff;
+  color: #fff;
+}
+
+details.select_container .select__option input {
+  display: none;
+}
+
+  </style>
+
+
+  <!-- TODO: Missing CoffeeScript 2 -->
+
+  <script type="text/javascript">
+
+
+    window.onload=function(){
+      
+class detailSelect {
+  constructor(container) {
+    this.container = document.querySelector(container);
+    this.options = document.querySelectorAll(`${container} > .select > .select__option`);
+    this.value = this.container.querySelector('summary').textContent;
+    this.mouseDown = false;
+    this._addEventListeners();
+    this._setAria();
+    this.updateValue();
+  }
+
+  // Private function to set event listeners
+  _addEventListeners() {
+    this.container.addEventListener('toggle', () => {
+      if (this.container.open) return;
+      this.updateValue();
+    })
+
+    this.container.addEventListener('focusout', e => {
+      if (this.mouseDown) return;
+      this.container.removeAttribute('open');
+    })
+
+    this.options.forEach(opt => {
+      opt.addEventListener('mousedown', () => {
+        this.mouseDown = true;
+      })
+      opt.addEventListener('mouseup', () => {
+        this.mouseDown = false;
+        this.container.removeAttribute('open');
+      })
+    })
+
+    this.container.addEventListener('keyup', e => {
+      const keycode = e.which;
+      const current = [...this.options].indexOf(this.container.querySelector('.active'));
+      switch (keycode) {
+        case 27: // ESC
+          this.container.removeAttribute('open');
+          break;
+        case 35: // END
+          e.preventDefault();
+          if (!this.container.open) this.container.setAttribute('open', '');
+          this.setChecked(this.options[this.options.length - 1].querySelector('input'))
+          break;
+        case 36: // HOME
+          e.preventDefault();
+          if (!this.container.open) this.container.setAttribute('open', '');
+          this.setChecked(this.options[0].querySelector('input'))
+          break;
+        case 38: // UP
+          e.preventDefault();
+          if (!this.container.open) this.container.setAttribute('open', '');
+          this.setChecked(this.options[current > 0 ? current - 1 : 0].querySelector('input'));
+          break;
+        case 40: // DOWN
+          e.preventDefault();
+          if (!this.container.open) this.container.setAttribute('open', '');
+          this.setChecked(this.options[current <= this.options.length ? current + 1 : this.options.length - 1].querySelector('input'));
+          break;
+      }
+    })
+  }
+
+  _setAria() {
+    this.container.setAttribute('aria-haspopup', 'listbox');
+    const selectBox = this.container.querySelector('.select');
+    selectBox.setAttribute('role', 'listbox');
+    selectBox.querySelector('[type=radio]').setAttribute('role', 'option')
+  }
+
+  updateValue(e) {
+    const that = this.container.querySelector('input:checked');
+    if (!that) return;
+    this.setValue(that)
+  }
+
+  setChecked(that) {
+    that.checked = true;
+    this.setValue(that)
+  }
+
+  setValue(that) {
+    if (this.value == that.value) return;
+
+    this.container.querySelector('summary').textContent = that.parentNode.textContent;
+    this.value = that.value;
+
+    this.options.forEach(opt => {
+      opt.classList.remove('active');
+    })
+    that.parentNode.classList.add('active');
+
+    this.container.dispatchEvent(new Event('change'));
+  }
+}
+
+const details = new detailSelect('#example_select');
+
+
+    }
+
+</script>
+
+</head>
+<body>
+    <details id="example_select" class="select_container" aria-haspopup="listbox">
+  <summary>
+      Medium
+    </summary>
+  <div class="select" role="listbox">
+    <label class="select__option">
+      <input type="radio" name="example" value="slower" role="option">Slower
+    </label>
+    <label class="select__option">
+      <input type="radio" name="example" value="slow">Slow
+    </label>
+    <label class="select__option active">
+      <input checked="checked" type="radio" name="example" value="medium">Medium
+    </label>
+    <label class="select__option">
+      <input type="radio" name="example" value="fast">Fast
+    </label>
+    <label class="select__option">
+      <input type="radio" name="example" value="faster">Faster
+    </label>
+  </div>
+</details>
+
+
+  
+  <script>
+    // tell the embed parent frame the height of the content
+    if (window.parent && window.parent.parent){
+      window.parent.parent.postMessage(["resultsFrame", {
+        height: document.body.getBoundingClientRect().height,
+        slug: "rj1q38ok"
+      }], "*")
+    }
+
+    // always overwrite window.name, in case users try to set it manually
+    window.name = "result"
+  </script>
+
+
+</body></html>
